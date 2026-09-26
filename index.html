@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taylor Hale — 2026–27 Season Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{
+  color-scheme: light;
+  --red:#BA0C2F; --red-dark:#8f0a24; --navy:#0b1f3a; --ink:#1a1f2b;
+  --stone:#5b6472; --line:#e6e8ec; --bg:#f4f5f7; --card:#ffffff;
+  --green:#1f8a4c; --amber:#c77d0a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 48px}
+/* Header */
+.hero{background:linear-gradient(135deg,var(--navy),#132a4d);color:#fff;
+  border-radius:0 0 20px 20px;padding:26px 20px 22px;margin:0 -16px 20px;
+  box-shadow:0 6px 20px rgba(11,31,58,.18)}
+.hero .team{display:flex;align-items:center;gap:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:#ffd0d8}
+.hero .dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(186,12,47,.3)}
+.hero h1{margin:8px 0 2px;font-size:27px;line-height:1.15;font-weight:800}
+.hero h1 span{color:#ff5c78}
+.hero .sub{color:#c7d0de;font-size:14px}
+.hero .meta{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);
+  padding:4px 10px;border-radius:999px;font-size:12px;color:#eaf0f8}
+/* Sections */
+h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--stone);
+  margin:26px 2px 12px;font-weight:700}
+/* Stat tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px 12px;text-align:center;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.tile .v{font-size:26px;font-weight:800;color:var(--navy);line-height:1}
+.tile .v.small{font-size:20px}
+.tile .l{font-size:11px;color:var(--stone);margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+.tile .k{font-size:10px;color:#9aa2ae;margin-top:2px}
+/* Chart */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.chart-box{position:relative;height:240px}
+.legendnote{font-size:11px;color:var(--stone);margin-top:8px;text-align:center}
+/* Round rank in field */
+.rankrow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid #f0f1f4}
+.rankrow:last-child{border-bottom:none}
+.rklabel{width:48px;font-size:12px;font-weight:700;color:var(--stone);flex-shrink:0}
+.rkscore{width:30px;text-align:center;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;flex-shrink:0;color:var(--ink)}
+.rkscore.even{color:var(--navy)}
+.rkbar{flex:1;position:relative;height:22px;background:#eff1f4;border-radius:6px;overflow:hidden;min-width:70px}
+.rkfill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#BA0C2F,#e0466a);border-radius:6px}
+.rkfill.hot{background:linear-gradient(90deg,#1f8a4c,#3ab86e)}
+.rkpct{position:absolute;top:50%;transform:translateY(-50%);font-size:10.5px;font-weight:800;white-space:nowrap}
+.rkpct.out{right:8px;color:#3a4150}
+.rkpct.in{color:#fff}
+.rkpos{width:58px;text-align:right;font-size:14px;font-weight:800;color:var(--red);flex-shrink:0}
+.rkpos em{font-style:normal;font-size:10px;color:var(--stone);font-weight:600}
+.rkpos .star{color:var(--green)}
+/* Season compare */
+.cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--stone);font-weight:600;font-size:12px}
+.cmp td .ev{display:block;font-size:10.5px;color:var(--stone);font-weight:500;margin-top:1px}
+.cmp .now{background:#fff5f7}
+.cmp .now .big{color:var(--navy);font-weight:800}
+.cmp .big{font-weight:800}
+.up-arrow{color:var(--green);font-weight:800;font-size:11px}
+/* Field strength */
+.fs{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+.fschip{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:middle}
+.fs-reg{background:#eef1f5;color:#5b6472}
+.fs-mid{background:#e5eefb;color:#1e5bb8}
+.fs-strong{background:#fbe6ea;color:#BA0C2F}
+.fsproj{opacity:.7}
+/* Event cards */
+.event{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);margin-bottom:14px}
+.event .top{padding:15px 16px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.event .name{font-weight:800;font-size:16px;color:var(--navy)}
+.event .when{font-size:12px;color:var(--stone);margin-top:2px}
+.finish{text-align:right;flex-shrink:0}
+.finish .pos{font-size:20px;font-weight:800;color:var(--red)}
+.finish .of{font-size:11px;color:var(--stone)}
+.finish .sc{font-size:12px;color:var(--ink);font-weight:600;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:center}
+th{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--stone);
+  background:#fafbfc;border-bottom:1px solid var(--line)}
+td{border-bottom:1px solid #f0f1f4}
+tbody tr:last-child td{border-bottom:none}
+td.name-c,th.name-c{text-align:left;font-weight:600}
+tr.taylor{background:#fff5f7}
+tr.taylor td.name-c{color:var(--red);font-weight:800}
+.tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;
+  padding:1px 6px;border-radius:6px;background:#eef1f5;color:var(--stone);margin-left:6px;vertical-align:middle}
+.rd{font-variant-numeric:tabular-nums}
+.rd.under{color:var(--green);font-weight:700}
+.rd.even{color:var(--navy);font-weight:800}
+.rd.cncl{color:#b7bcc5;font-style:italic}
+.tot{font-weight:800;font-variant-numeric:tabular-nums}
+/* Storyline */
+.note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--red);
+  border-radius:12px;padding:14px 16px;font-size:14px;color:#374151}
+.note b{color:var(--navy)}
+.up{display:flex;align-items:center;gap:10px;background:var(--card);border:1px dashed var(--line);
+  border-radius:12px;padding:13px 15px;color:var(--stone);font-size:13px}
+.up .cal{font-size:18px}
+/* Schedule */
+.sched{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.srow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f1f4}
+.srow:last-child{border-bottom:none}
+.srow.next{background:#fff5f7}
+.srow.upcoming{opacity:.92}
+.sdate{flex-shrink:0;width:70px;font-size:12px;font-weight:700;color:var(--navy);line-height:1.25;text-align:center}
+.sdate .yr{display:block;font-size:10px;font-weight:600;color:#9aa2ae}
+.sinfo{flex:1;min-width:0}
+.sname{font-size:14px;font-weight:700;color:var(--ink)}
+.sloc{font-size:11.5px;color:var(--stone);margin-top:1px}
+.sres{flex-shrink:0;text-align:right;font-size:13px;font-weight:800;color:var(--red);line-height:1.2}
+.sres span{display:block;font-size:10px;font-weight:600;color:var(--stone);margin-top:1px}
+.sres.up{color:#c3c8d0;font-weight:600;font-size:12px}
+.nexttag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.05em;background:var(--red);
+  color:#fff;padding:1px 6px;border-radius:6px;margin-left:6px;vertical-align:middle}
+.seasonhdr{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--stone);
+  background:#fafbfc;padding:7px 14px;border-bottom:1px solid var(--line)}
+footer{margin-top:26px;font-size:11px;color:#9aa2ae;text-align:center;line-height:1.7}
+footer a{color:var(--stone)}
+.updated{font-size:11px;color:#9aa2ae;text-align:center;margin-top:4px}
+@media(max-width:480px){
+  .hero h1{font-size:23px}
+  .tile .v{font-size:22px}
+  th,td{padding:8px 6px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="team"><span class="dot"></span> St. John's Red Storm · Women's Golf</div>
+    <h1>Taylor Hale <span>'30</span> — Season Tracker</h1>
+    <div class="sub">2026–27 · NCAA Division I · Big East Conference</div>
+    <div class="meta">
+      <span class="pill">Head Coach: Ambry Bishop-Santillo</span>
+      <span class="pill">Freshman season</span>
+      <span class="pill">2 of 10 events played</span>
+      <span class="pill">Next: Oct 11 · UAlbany</span>
+    </div>
+  </div>
+
+  <h2>Taylor — Season at a Glance</h2>
+  <div class="tiles">
+    <div class="tile"><div class="v">2</div><div class="l">Events</div></div>
+    <div class="tile"><div class="v">5</div><div class="l">Rounds</div></div>
+    <div class="tile"><div class="v">77.2</div><div class="l">Scoring Avg</div><div class="k">+5.6 vs par</div></div>
+    <div class="tile"><div class="v">Even</div><div class="l">Best Round</div><div class="k">T2 of 52 · QV R2</div></div>
+    <div class="tile"><div class="v">T22</div><div class="l">Best Finish</div><div class="k">Quail Valley</div></div>
+    <div class="tile"><div class="v small">+9 → +4</div><div class="l">Trend</div><div class="k">rounds improving</div></div>
+  </div>
+
+  <h2>Round-by-Round (vs Par)</h2>
+  <div class="card">
+    <div class="chart-box"><canvas id="trend"></canvas></div>
+    <div class="legendnote">Each point is one round, in order played. Lower is better — the dashed line is even par. Taylor's standout so far: an <b>even-par second round</b> at Quail Valley.</div>
+  </div>
+
+  <h2>Round Rank in Field</h2>
+  <div class="card">
+    <div class="rankrow">
+      <div class="rklabel">QV · R1</div><div class="rkscore">+9</div>
+      <div class="rkbar"><div class="rkfill" style="width:37%"></div><span class="rkpct out">Top 63%</span></div>
+      <div class="rkpos">T34<em> / 54</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">QV · R2</div><div class="rkscore even">E</div>
+      <div class="rkbar"><div class="rkfill hot" style="width:96%"></div><span class="rkpct in" style="left:8px">Top 4%</span></div>
+      <div class="rkpos"><span class="star">★</span> T2<em> / 52</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">QV · R3</div><div class="rkscore">+6</div>
+      <div class="rkbar"><div class="rkfill" style="width:51%"></div><span class="rkpct out">Top 49%</span></div>
+      <div class="rkpos">T25<em> / 51</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">PR · R1</div><div class="rkscore">+9</div>
+      <div class="rkbar"><div class="rkfill" style="width:40%"></div><span class="rkpct out">Top 60%</span></div>
+      <div class="rkpos">T45<em> / 75</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">PR · R2</div><div class="rkscore">+4</div>
+      <div class="rkbar"><div class="rkfill" style="width:75%"></div><span class="rkpct in" style="left:8px">Top 25%</span></div>
+      <div class="rkpos">T19<em> / 76</em></div>
+    </div>
+    <div class="legendnote">Where each round placed among <b>every player in the field</b> that round (bar = share of the field she beat). Her even-par Quail Valley R2 ranked <b>T2 of 52</b>, and she closed Princeton R2 inside the <b>top 25%</b>.</div>
+  </div>
+
+  <h2>Rank Within Team</h2>
+  <div class="card">
+    <div class="rankrow">
+      <div class="rklabel">QV · R1</div><div class="rkscore">+9</div>
+      <div class="rkbar"><div class="rkfill" style="width:17%"></div><span class="rkpct out">counting 5</span></div>
+      <div class="rkpos">6th<em> / 6</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">QV · R2</div><div class="rkscore even">E</div>
+      <div class="rkbar"><div class="rkfill hot" style="width:100%"></div><span class="rkpct in" style="left:8px">co-low scorer</span></div>
+      <div class="rkpos"><span class="star">★</span> T1<em> / 6</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">QV · R3</div><div class="rkscore">+6</div>
+      <div class="rkbar"><div class="rkfill hot" style="width:83%"></div><span class="rkpct in" style="left:8px">2nd-best</span></div>
+      <div class="rkpos">T2<em> / 6</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">PR · R1</div><div class="rkscore">+9</div>
+      <div class="rkbar"><div class="rkfill" style="width:67%"></div><span class="rkpct in" style="left:8px">3rd</span></div>
+      <div class="rkpos">3rd<em> / 6</em></div>
+    </div>
+    <div class="rankrow">
+      <div class="rklabel">PR · R2</div><div class="rkscore">+4</div>
+      <div class="rkbar"><div class="rkfill hot" style="width:83%"></div><span class="rkpct in" style="left:8px">2nd-best</span></div>
+      <div class="rkpos">2nd<em> / 6</em></div>
+    </div>
+    <div class="legendnote">Taylor's place among the <b>six St. John's players</b> each round (fuller bar = higher on the team). After a 6th-place opener at Quail Valley she was the team's <b>co-low scorer in R2</b>, then top-2 in three of her next four rounds.</div>
+  </div>
+
+  <h2>Event Results</h2>
+
+  <!-- QUAIL VALLEY -->
+  <div class="event">
+    <div class="top">
+      <div>
+        <div class="name">The Charge at Quail Valley</div>
+        <div class="when">Sep 14–15, 2026 · Host: Sacred Heart · 3 rounds · 9 teams</div>
+        <div style="margin-top:7px"><span class="fs fs-reg">Regional field</span></div>
+      </div>
+      <div class="finish">
+        <div class="pos">4<span style="font-size:12px">th</span></div>
+        <div class="of">of 9 · team</div>
+        <div class="sc">+42 · 13·5·24</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th class="name-c">St. John's</th><th>Fin</th><th>R1</th><th>R2</th><th>R3</th><th>Tot</th></tr></thead>
+      <tbody>
+        <tr><td class="name-c">Lily Huynh</td><td>T6</td><td class="rd">+6</td><td class="rd even">E</td><td class="rd">+2</td><td class="tot">+8</td></tr>
+        <tr><td class="name-c">Chiara Pecchinotti</td><td>T13</td><td class="rd under">-1</td><td class="rd">+1</td><td class="rd">+10</td><td class="tot">+10</td></tr>
+        <tr><td class="name-c">Laura Mizlerova<span class="tag">IND</span></td><td>T18</td><td class="rd">+1</td><td class="rd">+3</td><td class="rd">+10</td><td class="tot">+14</td></tr>
+        <tr class="taylor"><td class="name-c">Taylor Hale</td><td>T22</td><td class="rd">+9</td><td class="rd even">E</td><td class="rd">+6</td><td class="tot">+15</td></tr>
+        <tr><td class="name-c">Kirsten Lee</td><td>28</td><td class="rd">+3</td><td class="rd">+10</td><td class="rd">+6</td><td class="tot">+19</td></tr>
+        <tr><td class="name-c">Olivia Baker</td><td>T29</td><td class="rd">+5</td><td class="rd">+4</td><td class="rd">+11</td><td class="tot">+20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PRINCETON -->
+  <div class="event">
+    <div class="top">
+      <div>
+        <div class="name">Princeton Invitational</div>
+        <div class="when">Sep 25–26, 2026 · Host: Princeton · 2 rounds (R3 cancelled — Nor'easter) · 12 teams</div>
+        <div style="margin-top:7px"><span class="fs fs-mid">Mid-major field · Ivy+</span></div>
+      </div>
+      <div class="finish">
+        <div class="pos">7<span style="font-size:12px">th</span></div>
+        <div class="of">of 12 · team</div>
+        <div class="sc">+45 · 31·14</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th class="name-c">St. John's</th><th>Fin</th><th>R1</th><th>R2</th><th>R3</th><th>Tot</th></tr></thead>
+      <tbody>
+        <tr><td class="name-c">Laura Mizlerova</td><td>T10</td><td class="rd">+4</td><td class="rd even">E</td><td class="rd cncl">—</td><td class="tot">+4</td></tr>
+        <tr class="taylor"><td class="name-c">Taylor Hale</td><td>T27</td><td class="rd">+9</td><td class="rd">+4</td><td class="rd cncl">—</td><td class="tot">+13</td></tr>
+        <tr><td class="name-c">Lily Huynh</td><td>T27</td><td class="rd">+8</td><td class="rd">+5</td><td class="rd cncl">—</td><td class="tot">+13</td></tr>
+        <tr><td class="name-c">Pihla Pennanen</td><td>T44</td><td class="rd">+11</td><td class="rd">+5</td><td class="rd cncl">—</td><td class="tot">+16</td></tr>
+        <tr><td class="name-c">Chiara Pecchinotti</td><td>T58</td><td class="rd">+10</td><td class="rd">+10</td><td class="rd cncl">—</td><td class="tot">+20</td></tr>
+        <tr><td class="name-c">Kirsten Lee</td><td>T69</td><td class="rd">+14</td><td class="rd">+11</td><td class="rd cncl">—</td><td class="tot">+25</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>The Story So Far</h2>
+  <div class="note">
+    Two events into her freshman campaign, <b>Taylor is trending the right way</b>. At Quail Valley she carded an <b>even-par second round</b> — the low round of anyone on the St. John's roster that day — and finished T22. At Princeton she cut her opening round nearly in half by day two (<b>+9 → +4</b>) before the final round was washed out by a Nor'easter. Her scoring average sits at <b>77.20</b> (about +5.6 per round, across par-72 Quail Valley and par-71 Springdale), with the arrow pointing down.
+  </div>
+
+  <h2>Program History</h2>
+  <div class="card">
+    <div class="tiles" style="margin-bottom:14px">
+      <div class="tile"><div class="v">2005</div><div class="l">Lone BIG EAST Title</div><div class="k">program's only</div></div>
+      <div class="tile"><div class="v">2nd</div><div class="l">2026 BIG EAST</div><div class="k">best since 2005</div></div>
+      <div class="tile"><div class="v">287</div><div class="l">Record Round</div><div class="k">1-under · Apr 2026</div></div>
+    </div>
+    <div class="note" style="border-left-color:var(--navy)">
+      Taylor joins a program on a clear upswing. After finishing 6th at the 2025 BIG EAST Championship, the Red Storm broke through last spring with a <b>runner-up finish at the 2026 BIG EAST Championship</b> — their best since the 2005 title and the <b>first-ever runner-up</b> in the event's history (since 2003). They set a <b>new program single-round scoring record (1-under 287)</b> on the final day, falling only to Xavier, winners of seven straight conference titles. The 2025–26 team also <b>won the St. John's Invitational</b> and placed runner-up in three events.
+    </div>
+    <div class="note" style="margin-top:10px;border-left-color:var(--red)">
+      <b>Returning core now on Taylor's team:</b> Lily Huynh (T7 at the 2026 BIG EAST), Pihla Pennanen (T7), and Kirsten Lee (T15 as a freshman). Next real measuring stick: the <b>BIG EAST Championship, Apr 24–26, 2027</b> — Riverton Pointe, SC.
+    </div>
+  </div>
+
+  <h2>This Season vs. Last</h2>
+  <div class="event">
+    <table class="cmp">
+      <thead><tr><th>Opening stretch</th><th>2025–26</th><th>2026–27</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1st event</td>
+          <td><span class="big">T13</span><span class="ev">Nittany Lion · +61</span><div style="margin-top:4px"><span class="fschip fs-strong">Power host</span></div></td>
+          <td class="now"><span class="big">4th</span><span class="ev">Quail Valley · +42</span><div style="margin-top:4px"><span class="fschip fs-reg">Regional</span></div></td>
+        </tr>
+        <tr>
+          <td>Princeton Inv.</td>
+          <td><span class="big">7th</span><span class="ev">of 13 · +38 · 54h</span><div style="margin-top:4px"><span class="fschip fs-mid">Mid-major</span></div></td>
+          <td class="now"><span class="big">7th</span><span class="ev">of 12 · +45 · 36h*</span><div style="margin-top:4px"><span class="fschip fs-mid">Mid-major</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="padding:12px 16px 4px"><div class="note" style="border-left-color:var(--navy)">
+      <b>Better finishes — but softer fields.</b> The 4th-vs-13th opener gap is mostly the schedule: this year's Quail Valley was a 9-team <b>regional</b> field, while last year's Nittany Lion was a Penn State–hosted, Big Ten–caliber field on a much harder course. The clean like-for-like is <b>Princeton</b> — same course, same Ivy+ field — where they went <b>7th both years</b>. So against equal competition the team is <b>holding serve, not surging</b> — still a quiet win given they replaced graduated leaders <b>Kelly Wu</b> (All-BIG EAST) and <b>Cathilyn Lee</b>, with sophomore <b>Laura Mizlerova</b> jumping T17 → T10 at Princeton.
+    </div>
+    <div class="note" style="margin:10px 0 14px;border-left-color:var(--stone)">
+      <b>The real test is ahead.</b> Last season was a slow fall that peaked into a historic spring (BIG EAST runner-up). With this fall's early fields on the softer side, the honest verdict waits for the <b>tougher spring slate — above all the BIG EAST Championship</b>, where the field is fixed and Xavier awaits.
+    </div></div>
+    <div style="padding:0 16px 14px;font-size:11px;color:#9aa2ae">* Round 3 cancelled by the Nor'easter.</div>
+  </div>
+
+  <h2>Season Schedule</h2>
+  <div class="sched">
+    <div class="seasonhdr">Fall 2026</div>
+    <div class="srow done">
+      <div class="sdate">Sep 14–15<span class="yr">2026</span></div>
+      <div class="sinfo"><div class="sname">The Charge at Quail Valley</div><div class="sloc">Littlestown, PA · host Sacred Heart<span class="fschip fs-reg">Regional</span></div></div>
+      <div class="sres">4th/9<span>Taylor T22</span></div>
+    </div>
+    <div class="srow done">
+      <div class="sdate">Sep 25–26<span class="yr">2026</span></div>
+      <div class="sinfo"><div class="sname">Princeton Invitational</div><div class="sloc">Princeton, NJ · host Princeton<span class="fschip fs-mid">Mid-major</span></div></div>
+      <div class="sres">7th/12<span>Taylor T27</span></div>
+    </div>
+    <div class="srow next">
+      <div class="sdate">Oct 11–12<span class="yr">2026</span></div>
+      <div class="sinfo"><div class="sname">UAlbany Doc Sauers Invitational <span class="nexttag">NEXT</span></div><div class="sloc">Delmar, NY · Normanside CC · host UAlbany<span class="fschip fs-reg fsproj">Regional*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="srow upcoming">
+      <div class="sdate">Oct 24–25<span class="yr">2026</span></div>
+      <div class="sinfo"><div class="sname">Lady Blue Hen</div><div class="sloc">Rehoboth Beach, DE · host Delaware<span class="fschip fs-mid fsproj">Mid-major*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="seasonhdr">Spring 2027</div>
+    <div class="srow upcoming">
+      <div class="sdate">Feb 20–21<span class="yr">2027</span></div>
+      <div class="sinfo"><div class="sname">Space Coast Classic (MoonGolf)</div><div class="sloc">Viera, FL · Duran GC · host Columbia<span class="fschip fs-mid fsproj">Mid-major*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="srow upcoming">
+      <div class="sdate">Mar 1–2<span class="yr">2027</span></div>
+      <div class="sinfo"><div class="sname">UNCW River Landing Classic</div><div class="sloc">Wallace, NC · host UNCW<span class="fschip fs-mid fsproj">Mid-major*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="srow upcoming">
+      <div class="sdate">Mar 22–23<span class="yr">2027</span></div>
+      <div class="sinfo"><div class="sname">Henssler Financial Invitational</div><div class="sloc">Kennesaw, GA · Pinetree CC · host Kennesaw State<span class="fschip fs-mid fsproj">Mid-major*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="srow upcoming">
+      <div class="sdate">Apr 5–6<span class="yr">2027</span></div>
+      <div class="sinfo"><div class="sname">St. John's Women's Invitational <span class="tag">HOME</span></div><div class="sloc">Hastings-on-Hudson, NY · St. Andrew's GC · host St. John's<span class="fschip fs-reg fsproj">Regional*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="srow upcoming">
+      <div class="sdate">Apr 10–11<span class="yr">2027</span></div>
+      <div class="sinfo"><div class="sname">Rutgers Invitational</div><div class="sloc">Piscataway, NJ · host Rutgers<span class="fschip fs-mid fsproj">Mid-major*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+    <div class="srow upcoming">
+      <div class="sdate">Apr 24–26<span class="yr">2027</span></div>
+      <div class="sinfo"><div class="sname">BIG EAST Championship 🏆</div><div class="sloc">Hardeeville, SC · Riverton Pointe G&amp;CC · conference championship<span class="fschip fs-strong fsproj">Championship*</span></div></div>
+      <div class="sres up">—</div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;font-size:11px;color:var(--stone);line-height:1.7;text-align:center">
+    <b style="color:var(--navy)">Field strength</b> &nbsp;
+    <span class="fschip fs-reg">Regional</span> mid-major / regional field &nbsp;·&nbsp;
+    <span class="fschip fs-mid">Mid-major</span> Ivy / Big East / power-host mix &nbsp;·&nbsp;
+    <span class="fschip fs-strong">Championship</span> toughest, incl. Xavier<br>
+    Played events rated from the actual field; <b>*</b> = projected from host &amp; conference profile.
+  </div>
+  <div class="updated">Data: Clippd Scoreboard · Last updated Sep 26, 2026</div>
+  <footer>
+    Sources:
+    <a href="https://scoreboard.clippd.com/teams/4079">St. John's team page</a> ·
+    <a href="https://scoreboard.clippd.com/tournaments/246806/scoring/player">Quail Valley</a> ·
+    <a href="https://scoreboard.clippd.com/tournaments/246358/scoring/player">Princeton Invitational</a><br>
+    Unofficial tracker built for the Hale family · Go Red Storm 🏌️‍♀️
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var ctx = document.getElementById('trend');
+  if(!ctx || typeof Chart === 'undefined') return;
+  var labels = ['QV R1','QV R2','QV R3','PR R1','PR R2'];
+  var scores = [9,0,6,9,4];
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'Score vs par',
+        data:scores,
+        borderColor:'#BA0C2F',
+        backgroundColor:'rgba(186,12,47,.10)',
+        borderWidth:3,
+        fill:true,
+        tension:.3,
+        pointBackgroundColor:scores.map(function(s){return s<=0?'#1f8a4c':'#BA0C2F';}),
+        pointBorderColor:'#fff',
+        pointBorderWidth:2,
+        pointRadius:6,
+        pointHoverRadius:8
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(c){var v=c.parsed.y;return v===0?'Even par':(v>0?'+'+v:v)+' vs par';}}}
+      },
+      scales:{
+        y:{
+          suggestedMin:-2, suggestedMax:11,
+          ticks:{callback:function(v){return v===0?'E':(v>0?'+'+v:v);},color:'#5b6472',font:{size:11}},
+          grid:{color:function(c){return c.tick.value===0?'#0b1f3a':'#eef0f3';},
+                lineWidth:function(c){return c.tick.value===0?1.5:1;}},
+          border:{display:false}
+        },
+        x:{grid:{display:false},ticks:{color:'#5b6472',font:{size:11}},border:{display:false}}
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
